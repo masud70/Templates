@@ -77,40 +77,68 @@ typedef tree<pair<ll,ll>, null_type, less<pair<ll,ll>>, rb_tree_tag, tree_order_
 
 ///************************************************ SOLUTION STARTS HERE ************************************************///
 ///======================================================================================================================///
-int n,m,b,d,a[105],x,y,z,adj[105][105],bd[105];
-ll ans=0;bool sp[105],ep[105];
+ll s,d,m,n,x,y,w;
+ll a[105][105];
+vl adj[105];
+int par[105];
 
-void f(int p,int v,int mns)
+ll find_path()
 {
-    v=min(v,a[p]);
-    if(ep[p]==true) {mns+=v;a[p]-=mns;ans+=v; return;}
-    for(int i=1;i<=n;i++)
+    memset(par,-1,sizeof(par));
+    par[s]=-2;
+    queue<pll>q;
+    q.push({s,100000000000000});
+    while(!q.empty())
     {
-        if(adj[p][i]>0&&sp[i]==false)
+        ll cur=q.front().F;
+        ll flow=q.front().S;
+        q.pop();
+        for(auto nxt:adj[cur])
         {
-            f(i,min(adj[p][i],v),mns);
-            adj[p][i]-=mns;
-            a[p]-=mns;
+            if((par[nxt]==-1) && (a[cur][nxt]>0))
+            {
+                par[nxt]=cur;
+                flow=min(flow,a[cur][nxt]);
+                if(nxt==d) return flow;
+                q.push({nxt,flow});
+            }
         }
     }
-    return;
+    return 0;
+}
+
+ll max_flow()
+{
+    ll res=0,temp=0;
+    while(temp=find_path())
+    {
+        res+=temp;
+        int cur = d;
+        while(cur!=s)
+        {
+            int prev=par[cur];
+            a[prev][cur]-=temp;
+            a[cur][prev]+=temp;
+            cur=prev;
+        }
+    }
+    return res;
 }
 int tc=1;
 void solve()
 {
-    cin>>n;ans=0;
-    loop(i,1,n+1) cin>>a[i];
-    cin>>m;
-    memset(adj,0,sizeof(adj));
-    loop(i,0,m) {cin>>x>>y>>z;adj[x][y]=z;}
-    cin>>b>>d;
-    memset(sp,false,sizeof(sp));
-    memset(ep,false,sizeof(ep));
-    loop(i,0,b) {cin>>bd[i];sp[bd[i]]=true;}
-    loop(i,0,d) {cin>>x;ep[x]=true;}
-    loop(i,0,b) f(bd[i],a[bd[i]],0);
-    printf("Case %d: %lld\n",tc++,ans);
-    return;
+    memset(a,0,sizeof(a));
+    cin>>n>>s>>d>>m;
+    loop(i,0,m)
+    {
+        cin>>x>>y>>w;
+        a[x][y]+=w;
+        a[y][x]+=w;
+        adj[x].PB(y);
+        adj[y].PB(x);
+    }
+    ll ans=max_flow();
+    cout<<"Case "<<tc++<<": "<<ans<<"\n";
 }
 
 int main()
@@ -118,7 +146,6 @@ int main()
     //io();
     int $=1;cin>>$;
     while($--) solve();
-
     return 0;
 }
 
